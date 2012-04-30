@@ -8,7 +8,8 @@ enable_testing()
 include(CheckCXXCompilerFlag)
 check_cxx_compiler_flag( -std=c++0x CXX0X_Support )
 if(CXX0X_Support)
-	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -g")
+	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+	add_definitions( -g )
 else()
 	message( "WARNING: --std=c++0x not supported by your compiler!" )
 endif()
@@ -51,6 +52,6 @@ add_executable(clomp src/main.cxx)
 target_link_libraries(clomp Clomp ${clang_LIBs} ${pthread_LIB} ${llvm_LIB})
 
 add_executable(ut_pragma_matcher test/pragma_matcher_test.cc)
-target_link_libraries(ut_pragma_matcher Clomp ${clang_LIBs} ${pthread_LIB} ${llvm_LIB}
-	gtest gtest_main)
+target_link_libraries(ut_pragma_matcher Clomp ${clang_LIBs} 
+						${pthread_LIB} ${llvm_LIB} gtest gtest_main)
 
