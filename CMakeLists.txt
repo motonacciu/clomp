@@ -14,7 +14,14 @@ else()
 	message( "WARNING: --std=c++0x not supported by your compiler!" )
 endif()
 
-set(LLVM_HOME /media/data/software/llvm-latest)
+if(NOT DEFINED LLVM_HOME)
+	if (NOT $ENV{LLVM_HOME} STREQUAL "")
+		set (LLVM_HOME $ENV{LLVM_HOME})
+	endif()
+endif()
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/include/config.h.in 
+	${CMAKE_CURRENT_SOURCE_DIR}/include/utils/config.h)
 
 include_directories( 
 	${CMAKE_CURRENT_SOURCE_DIR}/include

@@ -16,7 +16,7 @@
 //	 along with Clomp.  If not, see <http://www.gnu.org/licenses/>.
 //*****************************************************************************
 #include "driver/compiler.h"
-#include "clang_config.h"
+#include "utils/config.h"
 #include "sema.h"
 
 // defines which are needed by LLVM

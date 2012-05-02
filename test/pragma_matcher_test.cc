@@ -21,7 +21,7 @@
 #include "driver/program.h"
 #include "driver/compiler.h"
 #include "utils/source_locations.h"
-#include "clang_config.h"
+#include "utils/config.h"
 
 #include "handler.h"
 #include "omp/pragma.h"
