@@ -13,7 +13,22 @@
 
 using namespace clomp;
 
+
+std::string license = 
+"========================================================\n\
+University of Illinois/NCSA Open Source License\n\
+\n\
+Copyright (c) 2012 University of Innsbruck\n\
+All rights reserved.\n\
+\n\
+Developed by:   Simone Pellegrini \n\
+                University of Innsbruck \n\
+                http://www.dps.uibk.ac.at/en/index.html \n\
+========================================================\n";
+
 int main(int argc, char* argv[]) {
+
+	std::cout << license << std::endl;
 
 	Program p;
 	TranslationUnit& tu = p.addTranslationUnit(argv[1]);
