@@ -13,8 +13,6 @@
 #include <stdexcept>
 #include <cassert>
 
-#include <boost/utility.hpp>
-
 // forward declarations
 namespace clang {
 class ASTContext;
@@ -105,10 +103,14 @@ struct ClangParsingError: public std::logic_error {
  * ClangCompiler is a wrapper class for the Clang compiler main interfaces. The main goal is to hide implementation
  * details to the client.
  */
-class ClangCompiler: boost::noncopyable {
+class ClangCompiler {
 	struct ClangCompilerImpl;
 
 	ClangCompilerImpl* pimpl;
+
+	/* Make this class noncopyable */
+	ClangCompiler(const ClangCompiler& other);
+
 public:
 	/**
 	 * Creates an empty compiler instance, usefull for test cases

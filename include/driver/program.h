@@ -64,13 +64,16 @@ typedef std::shared_ptr<TranslationUnit> TranslationUnitPtr;
  * input program should be handled by insieme and which should be kept as the
  * original.
  */
-class Program: public boost::noncopyable {
+class Program {
 
 	// Implements the pimpl pattern so we don't need to introduce an explicit
 	// dependency to Clang headers
 	class ProgramImpl;
 	typedef ProgramImpl* ProgramImplPtr;
 	ProgramImplPtr pimpl;
+
+	/* Makes this class non copyable */
+	Program(const Program& other); 
 
 public:
 	typedef std::set<TranslationUnitPtr> TranslationUnitSet;
