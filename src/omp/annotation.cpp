@@ -31,96 +31,206 @@ namespace clomp { namespace omp {
 
 ///----- ForClause -----
 std::ostream& ForClause::dump(std::ostream& out) const {
-	if(hasLastPrivate())
-		out << "lastprivate(" 
-			<< utils::join(var_to_names(*lastPrivateClause)) 
-			<< "), ";
 
-	if(hasSchedule())
-		scheduleClause->dump(out) << ", ";
-	if(hasCollapse())
-		out << "collapse(" << collapseExpr << "), ";
-	if(hasNoWait())
-		out << "nowait, ";
-	return out;
+	std::vector<std::string> clause_str;
+	std::ostringstream ss;
+
+	if(hasLastPrivate()) {
+		ss << "lastprivate(" 
+			<< utils::join(var_to_names(*lastPrivateClause)) 
+			<< ")";
+		clause_str.emplace_back( ss.str() );
+	}
+
+	if(hasSchedule()) {
+		ss.str("");
+		scheduleClause->dump(ss);
+		clause_str.emplace_back( ss.str() );
+	}
+
+	if(hasCollapse()) {
+		ss.str("");
+		ss << "collapse(" << collapseExpr << ")";
+		clause_str.emplace_back( ss.str() );
+	}
+
+	if(hasNoWait()) 
+		clause_str.emplace_back( "nowait" );
+
+	return out << utils::join(clause_str);
 }
 
 ///----- SharedParallelAndTaskClause -----
 std::ostream& SharedParallelAndTaskClause::dump(std::ostream& out) const {
-	if(hasIf())
-		out << "if(" << ifClause << "), ";
-	if(hasDefault())
-		defaultClause->dump(out) << ", ";
-	if(hasShared())
-		out << "shared(" << utils::join(var_to_names(*sharedClause)) << "), ";
-	return out;
+	std::vector<std::string> clause_str;
+	std::ostringstream ss;
+
+	if(hasIf()) {
+		ss.str("");
+		ss << "if(" << ifClause << ")";
+		clause_str.emplace_back( ss.str() );
+	}
+	if(hasDefault()) {
+		ss.str("");
+		defaultClause->dump(ss);
+		clause_str.emplace_back( ss.str() );
+	}
+	if(hasShared()) {
+		ss.str("");
+		ss << "shared(" << utils::join(var_to_names(*sharedClause)) << ")";
+		clause_str.emplace_back( ss.str() );
+	}
+
+	return out << utils::join(clause_str);
 }
 
 ///----- ParallelClause -----
 std::ostream& ParallelClause::dump(std::ostream& out) const {
-	SharedParallelAndTaskClause::dump(out) << ",";
-	if(hasNumThreads())
-		out << "num_threads(" << numThreadClause << "), ";
-	if(hasCopyin())
-		out << "copyin(" << utils::join(var_to_names(*copyinClause)) << "), ";
-	return out;
+	std::vector<std::string> clause_str;
+
+	std::ostringstream ss;
+	SharedParallelAndTaskClause::dump(ss);
+	clause_str.emplace_back( ss.str() ); 
+
+	if(hasNumThreads()) {
+		ss.str("");
+		ss << "num_threads(" << numThreadClause << ")";
+		clause_str.emplace_back( ss.str() );
+	} 
+	if(hasCopyin()) {
+		ss.str("");
+		ss << "copyin(" << utils::join(var_to_names(*copyinClause)) << ")";
+		clause_str.emplace_back( ss.str() );
+	}
+	return out << utils::join(clause_str);
 }
 
 ///----- CommonClause -----
 std::ostream& CommonClause::dump(std::ostream& out) const {
-	if(hasPrivate())
-		out << "private(" 
-			<< utils::join(var_to_names(*privateClause)) 
-			<< "), ";
-	if(hasFirstPrivate())
-		out << "firstprivate(" 
-			<< utils::join(var_to_names(*firstPrivateClause)) 
-			<< "), ";
-	return out;
+
+	std::ostringstream ss;
+	std::vector<std::string> clause_str;
+
+	if(hasPrivate()) {
+		ss.str("");
+		ss << "private(" 
+		   << utils::join(var_to_names(*privateClause)) 
+	  	   << ")";
+		clause_str.emplace_back( ss.str() );
+	}
+	if(hasFirstPrivate()) {
+		ss.str("");
+		ss << "firstprivate(" 
+		   << utils::join(var_to_names(*firstPrivateClause)) 
+		   << ")";
+		clause_str.emplace_back( ss.str() );
+	}
+
+	return out << utils::join( clause_str );
 }
 
 ///----- Parallel -----
 std::ostream& Parallel::dump(std::ostream& out) const {
+	std::vector<std::string> clause_str;
+	std::ostringstream ss;
+
 	out << "parallel(";
-	CommonClause::dump(out);
-	ParallelClause::dump(out);
-	if(hasReduction())
-		reductionClause->dump(out) << ", ";
-	return out << ")";
+	{
+		CommonClause::dump(ss);
+		if (!ss.str().empty())
+			clause_str.emplace_back( ss.str() );
+	}
+	{ 
+		ss.str("");
+		ParallelClause::dump(ss);
+		if (!ss.str().empty())
+			clause_str.emplace_back( ss.str() );
+	}
+	if(hasReduction()) {
+		ss.str("");
+		reductionClause->dump(ss);
+		if(!ss.str().empty())
+			clause_str.emplace_back( ss.str() );
+	}
+	return out << utils::join(clause_str) << ")";
 }
 
 ///----- For -----
 std::ostream& For::dump(std::ostream& out) const {
+	std::vector<std::string> clause_str;
+	std::ostringstream ss;
 	out << "for(";
-	CommonClause::dump(out);
-	ForClause::dump(out);
-	if(hasReduction()) {
-		reductionClause->dump(out) << ", ";
+	{ 
+		CommonClause::dump(ss);
+		if(!ss.str().empty())
+			clause_str.emplace_back( ss.str() );
 	}
-	return out << ")";
+	{
+		ss.str("");
+		ForClause::dump(ss);
+		if (!ss.str().empty())
+			clause_str.emplace_back( ss.str() );
+	}
+	if(hasReduction()) {
+		ss.str("");
+		reductionClause->dump(ss);
+		if (!ss.str().empty())
+			clause_str.emplace_back( ss.str() );
+	}
+	return out << utils::join(clause_str) << ")";
 }
 
 ///----- ParallelFor -----
 std::ostream& ParallelFor::dump(std::ostream& out) const {
+	std::vector<std::string> clause_str;
+	std::ostringstream ss;
+
 	out << "parallel for(";
-	CommonClause::dump(out);
-	ParallelClause::dump(out);
-	ForClause::dump(out);
-	if(hasReduction()) {
-		reductionClause->dump(out) << ", ";
+	{
+		CommonClause::dump(ss);
+		if (!ss.str().empty())
+			clause_str.emplace_back( ss.str() );
 	}
-	return out << ")";
+	{
+		ss.str("");
+		ParallelClause::dump(ss);
+		if (!ss.str().empty())
+			clause_str.emplace_back( ss.str() );
+	}
+	{
+		ss.str("");
+		ForClause::dump(ss);
+		if (!ss.str().empty())
+			clause_str.emplace_back( ss.str() );
+	}
+	if(hasReduction()) {
+		ss.str("");
+		reductionClause->dump(ss);
+		if (!ss.str().empty())
+			clause_str.emplace_back( ss.str() );
+	}
+	return out << utils::join(clause_str) << ")";
 }
 
 ///----- SectionClause -----
 std::ostream& SectionClause::dump(std::ostream& out) const {
-	if(hasLastPrivate())
-		out << "lastprivate(" << utils::join(var_to_names(*lastPrivateClause)) << "), ";
-	if(hasReduction())
-		reductionClause->dump(out) << ", ";
-	if(hasNoWait())
-		out << "nowait, ";
-	return out;
+	std::vector<std::string> clause_str;
+	std::ostringstream ss;
+	if(hasLastPrivate()) {
+		ss.str("");
+		ss << "lastprivate(" << utils::join(var_to_names(*lastPrivateClause)) << ")";
+		clause_str.emplace_back( ss.str() );
+	}
+	if(hasReduction()) {
+		ss.str("");
+		reductionClause->dump(ss);
+		if (!ss.str().empty())
+			clause_str.emplace_back( ss.str() );
+	}
+	if(hasNoWait()) 
+		clause_str.emplace_back( "nowait" );
+
+	return out << utils::join( clause_str );
 }
 
 ///----- Sections -----
@@ -133,31 +243,69 @@ std::ostream& Sections::dump(std::ostream& out) const {
 ///----- ParallelSections -----
 std::ostream& ParallelSections::dump(std::ostream& out) const {
 	out << "parallel sections(";
-	CommonClause::dump(out);
-	ParallelClause::dump(out);
-	SectionClause::dump(out);
-	return out << ")";
+
+	std::vector<std::string> clause_str;
+	std::ostringstream ss;
+	{
+		CommonClause::dump(ss);
+		if (!ss.str().empty())
+			clause_str.emplace_back( ss.str() );
+	}
+	{
+		ss.str("");
+		ParallelClause::dump(ss);
+		if (!ss.str().empty())
+			clause_str.emplace_back( ss.str() );
+	}
+	{
+		ss.str("");
+		SectionClause::dump(ss);
+		if (!ss.str().empty())
+			clause_str.emplace_back( ss.str() );
+	}
+	return out << utils::join(clause_str) << ")";
 }
 
 ///----- Single -----
 std::ostream& Single::dump(std::ostream& out) const {
 	out << "single(";
-	CommonClause::dump(out);
-	if(hasCopyPrivate())
-		out << "copyprivate(" << utils::join(var_to_names(*copyPrivateClause)) << "), ";
-	if(hasNoWait())
-		out << "nowait";
-	return out << ")";
+	std::vector<std::string> clause_str;
+	std::ostringstream ss;
+	{
+		CommonClause::dump(ss);
+		clause_str.emplace_back( ss.str() );
+	}
+	if (hasCopyPrivate()) {
+		ss.str("");
+		ss << "copyprivate(" << utils::join(var_to_names(*copyPrivateClause)) << ")";
+		clause_str.emplace_back( ss.str() );
+	}
+	if (hasNoWait()) 
+		clause_str.emplace_back( "nowait" );
+
+	return out << utils::join(clause_str) << ")";
 }
 
 ///----- Task -----
 std::ostream& Task::dump(std::ostream& out) const {
 	out << "task(";
-	CommonClause::dump(out);
-	SharedParallelAndTaskClause::dump(out);
-	if(hasUntied())
-		out << "united";
-	return out << ")";
+
+	std::vector<std::string> clause_str;
+	std::ostringstream ss;
+
+	{ 
+		CommonClause::dump(ss);
+		clause_str.emplace_back( ss.str() );
+	}
+	{
+		ss.str("");
+		SharedParallelAndTaskClause::dump(ss);
+		clause_str.emplace_back( ss.str() );
+	}
+	if(hasUntied()) 
+		clause_str.emplace_back( "united" );
+
+	return out << utils::join(clause_str) << ")";
 }
 
 ///----- Critical -----
