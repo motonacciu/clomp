@@ -10,7 +10,8 @@ source, therefore it is not compatible with later versions of LLVM.
 
 In order to install Clomp the following libraries are needed:
 * gcc compiler with C++0x support (version 4.5.x or later)
-* cmake
+* cmake (http://www.cmake.org/)
+* gtest (http://code.google.com/p/googletest/)
 * LLVM-3.0-patch
 
 ### Install patched LLVM-3.0
@@ -31,7 +32,7 @@ Clomp is based on cmake. In order to build the makefile for the entire project r
 the root folder:
 
 ```
-LLVM_HOME=/my/llvm/installation/path cmake .
+LLVM_HOME=/my/llvm/installation/path GTEST_ROOT=/gtest/build/path cmake .
 ```
 
 Make sure that the LLVM_HOME enviroment variable points to the previously installed patched version of LLVM 
