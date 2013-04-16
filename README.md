@@ -12,17 +12,17 @@ In order to install Clomp the following libraries are needed:
 * gcc compiler with C++0x support (version 4.5.x or later)
 * cmake (http://www.cmake.org/)
 * gtest (http://code.google.com/p/googletest/)
-* LLVM-3.0-patch
+* LLVM-3.2-patch
 
-### Install patched LLVM-3.0
+### Install patched LLVM-3.2
 
 In order to install the required patched version of LLVM a script is provided in the script folder called 
-llvm-3.0-installer.sh
+llvm-3.2-installer.sh
 
 In order for the script to find patched, it needs to be executed from the script directory. 
 ```
 cd script/
-PREFIX=/my/llvm/installation/path sh llvm-3.0-installer.sh 
+PREFIX=/my/llvm/installation/path sh llvm-3.2-installer.sh 
 ```
 The script will download and install LLVM in the given PREFIX path. 
 
