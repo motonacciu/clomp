@@ -23,7 +23,7 @@ cd ../
 echo "***********************************"
 echo "* Applying insieme patch to CLANG *"
 echo "***********************************"
-patch -p1  < ../clomp.patch
+patch -p1  < ../clomp-3.0.patch
 
 echo "*******************"
 echo "* Compiling CLANG *"

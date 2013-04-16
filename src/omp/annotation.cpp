@@ -42,11 +42,8 @@ std::ostream& ForClause::dump(std::ostream& out) const {
 		clause_str.emplace_back( ss.str() );
 	}
 
-	if(hasSchedule()) {
-		ss.str("");
-		scheduleClause->dump(ss);
-		clause_str.emplace_back( ss.str() );
-	}
+	if(hasSchedule()) 
+		clause_str.emplace_back( utils::toString(*scheduleClause) );
 
 	if(hasCollapse()) {
 		ss.str("");
@@ -70,11 +67,10 @@ std::ostream& SharedParallelAndTaskClause::dump(std::ostream& out) const {
 		ss << "if(" << ifClause << ")";
 		clause_str.emplace_back( ss.str() );
 	}
-	if(hasDefault()) {
-		ss.str("");
-		defaultClause->dump(ss);
-		clause_str.emplace_back( ss.str() );
-	}
+
+	if(hasDefault()) 
+		clause_str.emplace_back( utils::toString(*defaultClause) );
+
 	if(hasShared()) {
 		ss.str("");
 		ss << "shared(" << utils::join(var_to_names(*sharedClause)) << ")";
@@ -335,6 +331,16 @@ std::ostream& ThreadPrivate::dump(std::ostream& out) const {
 namespace std {
 
 ostream& operator<<(ostream& os, const clomp::omp::Annotation& ann) {
+	ann.dump(os);
+	return os;
+}
+
+ostream& operator<<(ostream& os, const clomp::omp::Schedule& ann) {
+	ann.dump(os);
+	return os;
+}
+
+ostream& operator<<(ostream& os, const clomp::omp::Default& ann) {
 	ann.dump(os);
 	return os;
 }

@@ -42,9 +42,8 @@ protected:
 	PragmaList 				mPragmaList;
 
 public:
-	TranslationUnit() { }
-	TranslationUnit(const std::string& fileName): 
-		mFileName(fileName), mClang(fileName) { }
+	TranslationUnit(const std::string& fileName);
+
 	/**
 	 * Returns a list of pragmas defined in the translation unit
 	 */
@@ -90,8 +89,6 @@ public:
 	 * Returns a list of parsed translation units
 	 */
 	const TranslationUnitSet& getTranslationUnits() const;
-
-	static const TranslationUnit& getTranslationUnit(const clang::idx::TranslationUnit* tu);
 
 	class PragmaIterator: public 
 				std::iterator<

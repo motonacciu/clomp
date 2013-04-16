@@ -8,13 +8,8 @@
 #include "utils/config.h"
 #include "sema.h"
 
-// defines which are needed by LLVM
-#define __STDC_LIMIT_MACROS
-#define __STDC_CONSTANT_MACROS
-
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Frontend/CompilerInvocation.h"
-#include "clang/Frontend/DiagnosticOptions.h"
 #include "clang/Frontend/TextDiagnosticPrinter.h"
 
 #include "clang/Basic/FileManager.h"
@@ -31,6 +26,8 @@
 #include "clang/AST/DeclGroup.h"
 
 #include "clang/Parse/Parser.h"
+
+#include <iostream>
 
 using namespace clomp;
 using namespace clang;
@@ -65,10 +62,23 @@ Token& ParserProxy::CurrentToken() {
 
 namespace {
 
-void setDiagnosticClient(clang::CompilerInstance& clang, clang::DiagnosticOptions& diagOpts) {
-	TextDiagnosticPrinter* diagClient = new TextDiagnosticPrinter(llvm::errs(), diagOpts);
-	DiagnosticsEngine* diags = new DiagnosticsEngine(llvm::IntrusiveRefCntPtr<DiagnosticIDs>( new DiagnosticIDs() ), diagClient);
-	// clang will take care of memory deallocation of diags
+void setDiagnosticClient(clang::CompilerInstance& clang) {
+
+	// NOTE: the TextDiagnosticPrinter within the set DiagnosticClient takes over ownership of the printer object!
+	clang::DiagnosticOptions* options = new clang::DiagnosticOptions();
+
+	// set diagnostic options for the error reporting
+	options->ShowLocation = 1;
+	options->ShowCarets = 1;
+	options->ShowColors = 1; // REMOVE FOR BETTER ERROR REPORT IN ECLIPSE
+	options->TabStop = 4;
+
+	TextDiagnosticPrinter* diagClient = new TextDiagnosticPrinter(llvm::errs(), options);
+	// cppcheck-suppress exceptNew
+	
+	// check why, it might be a double insert in list, or a isolated delete somewhere
+	DiagnosticsEngine* diags = new DiagnosticsEngine(llvm::IntrusiveRefCntPtr<DiagnosticIDs>( new DiagnosticIDs() ), 
+													options, diagClient, true);
 	clang.setDiagnostics(diags);
 }
 
@@ -78,66 +88,37 @@ namespace clomp {
 
 struct ClangCompiler::ClangCompilerImpl {
 	CompilerInstance clang;
-	DiagnosticOptions diagOpts;
+	llvm::IntrusiveRefCntPtr<TargetOptions> TO;
+
+	ClangCompilerImpl(): TO(new TargetOptions) { }
 };
 
-ClangCompiler::ClangCompiler() : pimpl(new ClangCompilerImpl){
-	// pimpl->clang.setLLVMContext(new llvm::LLVMContext);
-
-	setDiagnosticClient(pimpl->clang, pimpl->diagOpts);
-	pimpl->clang.createFileManager();
-	pimpl->clang.createSourceManager( pimpl->clang.getFileManager() );
-
-	// A compiler invocation object has to be created in order for the diagnostic object to work
-	CompilerInvocation* CI = new CompilerInvocation; // CompilerInvocation will be deleted by CompilerInstance
-	CompilerInvocation::CreateFromArgs(*CI, 0, 0, pimpl->clang.getDiagnostics());
-	pimpl->clang.setInvocation(CI);
-
-	TargetOptions TO;
-	// fix the target architecture to be a 64 bit machine:
-	// 		in this way we don't have differences between the size of integer/float types across architecture
-	TO.Triple = llvm::Triple("x86_64", "PC", "Linux").getTriple();
-	pimpl->clang.setTarget( TargetInfo::CreateTargetInfo (pimpl->clang.getDiagnostics(), TO) );
-
-	pimpl->clang.createPreprocessor();
-	pimpl->clang.createASTContext();
-}
-
 ClangCompiler::ClangCompiler(const std::string& file_name) : pimpl(new ClangCompilerImpl) {
-	// pimpl->clang.setLLVMContext(new llvm::LLVMContext);
 
-	// set diagnostic options for the error reporting
-	pimpl->diagOpts.ShowLocation = 1;
-	pimpl->diagOpts.ShowCarets = 1;
-	pimpl->diagOpts.ShowColors = 1; // REMOVE FOR BETTER ERROR REPORT IN ECLIPSE
-	pimpl->diagOpts.TabStop = 4;
-
-	setDiagnosticClient(pimpl->clang, pimpl->diagOpts);
+	setDiagnosticClient(pimpl->clang);
 
 	pimpl->clang.createFileManager();
 	pimpl->clang.createSourceManager( pimpl->clang.getFileManager() );
-	pimpl->clang.InitializeSourceManager(file_name);
 
 	// A compiler invocation object has to be created in order for the diagnostic object to work
 	CompilerInvocation* CI = new CompilerInvocation; // CompilerInvocation will be deleted by CompilerInstance
 	CompilerInvocation::CreateFromArgs(*CI, 0, 0, pimpl->clang.getDiagnostics());
 	pimpl->clang.setInvocation(CI);
+	
+	//setup headers 
+	pimpl->clang.getHeaderSearchOpts().UseBuiltinIncludes = 0;
+	pimpl->clang.getHeaderSearchOpts().UseStandardSystemIncludes = 1;  // Includes system includes, usually  /usr/include
+	pimpl->clang.getHeaderSearchOpts().UseStandardCXXIncludes = 0;
 
-	// Add default header
-	pimpl->clang.getHeaderSearchOpts().AddPath( CLANG_SYSTEM_INCLUDE_FOLDER, clang::frontend::System, true, false, false);
+	// Add default header 
+	pimpl->clang.getHeaderSearchOpts().AddPath (CLANG_SYSTEM_INCLUDE_FOLDER,
+			 									clang::frontend::System, true, false, false);
 
-	// add headers
-	//std::for_each(CommandLineOptions::IncludePaths.begin(), CommandLineOptions::IncludePaths.end(),
-	//	[ this ](std::string& curr) {
-	//		this->pimpl->clang.getHeaderSearchOpts().AddPath( curr, clang::frontend::System, true, false, false);
-	//	}
-	//);
-
-	TargetOptions TO;
 	// fix the target architecture to be a 64 bit machine
-	TO.Triple = llvm::Triple("x86_64", "PC", "Linux").getTriple();
+	pimpl->TO->Triple = llvm::Triple("x86_64", "PC", "Linux").getTriple();
 	// TO.Triple = llvm::sys::getHostTriple();
-	pimpl->clang.setTarget( TargetInfo::CreateTargetInfo (pimpl->clang.getDiagnostics(), TO) );
+	pimpl->clang.setTarget( TargetInfo::CreateTargetInfo (pimpl->clang.getDiagnostics(), *(pimpl->TO)) );
+
 
 	std::string extension(file_name.substr(file_name.rfind('.')+1, std::string::npos));
 	bool enableCpp = extension == "C" || extension == "cpp" || extension == "cxx" || extension == "hpp" || extension == "hxx";
@@ -160,21 +141,23 @@ ClangCompiler::ClangCompiler(const std::string& file_name) : pimpl(new ClangComp
 		LO.CXXExceptions = 1;
 	}
 
-	// Enable OpenCL
-	// LO.OpenCL = 1;
-	LO.AltiVec = 1;
-	LO.LaxVectorConversions = 1;
-
-	// set -D macros
-	//std::for_each(CommandLineOptions::Defs.begin(), CommandLineOptions::Defs.end(), [ this ](std::string& curr) {
-	//	this->pimpl->clang.getPreprocessorOpts().addMacroDef(curr);
-	//});
-
 	// Do this AFTER setting preprocessor options
 	pimpl->clang.createPreprocessor();
 	pimpl->clang.createASTContext();
 
-	pimpl->clang.getDiagnostics().getClient()->BeginSourceFile( LO, &pimpl->clang.getPreprocessor() );
+	getPreprocessor().getBuiltinInfo().InitializeBuiltins(
+			getPreprocessor().getIdentifierTable(),
+			getPreprocessor().getLangOpts()
+	);
+
+	std::cout << file_name << std::endl;
+
+	const FileEntry *FileIn = pimpl->clang.getFileManager().getFile(file_name, true);
+	assert(FileIn && "file not found");
+	pimpl->clang.getSourceManager().createMainFileID(FileIn);
+	pimpl->clang.getDiagnosticClient().BeginSourceFile(
+											pimpl->clang.getLangOpts(),
+											&pimpl->clang.getPreprocessor());
 }
 
 ASTContext& ClangCompiler::getASTContext() const { 

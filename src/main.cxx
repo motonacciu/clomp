@@ -33,16 +33,19 @@ int main(int argc, char* argv[]) {
 	Program p;
 	TranslationUnit& tu = p.addTranslationUnit(argv[1]);
 
+	int c=0;
 	for(auto it = p.pragmas_begin(), end = p.pragmas_end(); it != end; ++it) {
-		std::cout << "Pragma" << std::endl;
-
+//		std::cout << "Pragma" << std::endl;
+//
 		PragmaPtr pragma = (*it).first;
 		if (std::shared_ptr<omp::OmpPragma> omp_pragma = 
 				std::dynamic_pointer_cast<omp::OmpPragma>(pragma)) 
 		{
 			std::cout << "OmpPragma: " << *omp_pragma->toAnnotation() << std::endl;
+			c++;
 		}
 	}
 	
+	std::cout << c << " OpenMP pragmas" << std::endl;
 
 }

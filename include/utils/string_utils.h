@@ -28,5 +28,12 @@ std::string join(const ContainerT& cont, const std::string& sep=",") {
 	return join(cont.begin(), cont.end(), sep);
 }
 
+template <class T>
+std::string toString(const T& obj) {
+	std::ostringstream ss;
+	ss << obj;
+	return ss.str();
+}
+
 } // end utils namespace
 } // end clomp namespace 

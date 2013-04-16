@@ -14,10 +14,6 @@
 #include "clang/AST/DeclGroup.h"
 #include "clang/Analysis/CFG.h"
 
-#include "clang/Index/TranslationUnit.h"
-#include "clang/Index/DeclReferenceMap.h"
-#include "clang/Index/SelectorMap.h"
-
 #include "clang/Parse/Parser.h"
 #include "clang/Parse/ParseAST.h"
 
@@ -44,7 +40,7 @@ void parseClangAST(ClangCompiler&		comp,
 				CompleteTranslationUnit
 		 	   );
 
-	Parser P(comp.getPreprocessor(), S);
+	Parser P(comp.getPreprocessor(), S, false);
 	comp.getPreprocessor().EnterMainSourceFile();
 
 	P.Initialize();
@@ -70,70 +66,25 @@ void parseClangAST(ClangCompiler&		comp,
 	S.dump();
 }
 
-class TranslationUnitImpl: 
-	public clomp::TranslationUnit,
-	public idx::TranslationUnit 
-{
-	std::shared_ptr<idx::DeclReferenceMap>  mDeclRefMap;
-	std::shared_ptr<idx::SelectorMap>		mSelMap;
-
-public:
-	TranslationUnitImpl(const std::string& file_name):
-		clomp::TranslationUnit(file_name) 
-	{
-		// register 'omp' pragmas
-		omp::registerPragmaHandlers( mClang.getPreprocessor() );
-
-		clang::ASTConsumer emptyCons;
-		parseClangAST(mClang, &emptyCons, true, mPragmaList);
-
-		if( mClang.getDiagnostics().hasErrorOccurred() ) {
-			// errors are always fatal!
-			throw ClangParsingError(file_name);
-		}
-
-		// the translation unit has been correctly parsed
-		mDeclRefMap = 
-			std::make_shared<idx::DeclReferenceMap>( mClang.getASTContext() );
-		mSelMap = 
-			std::make_shared<idx::SelectorMap>( mClang.getASTContext() );
-	}
-
-	// getters
-	clang::Preprocessor& getPreprocessor() { 
-		return getCompiler().getPreprocessor(); 
-	}
-	const clang::Preprocessor& getPreprocessor() const { 
-		return getCompiler().getPreprocessor(); 
-	}
-
-	clang::ASTContext& getASTContext() { 
-		return getCompiler().getASTContext(); 
-	}
-	const clang::ASTContext& getASTContext() const { 
-		return getCompiler().getASTContext(); 
-	}
-
-	clang::DiagnosticsEngine& getDiagnostic() { 
-		return getCompiler().getDiagnostics(); 
-	}
-	const clang::DiagnosticsEngine& getDiagnostic() const { 
-		return getCompiler().getDiagnostics(); 
-	}
-
-	clang::idx::DeclReferenceMap& getDeclReferenceMap() { 
-		assert(mDeclRefMap); 
-		return *mDeclRefMap; 
-	}
-	clang::idx::SelectorMap& getSelectorMap() { 
-		assert(mSelMap); 
-		return *mSelMap; 
-	}
-};
-
 } // end anonymous namespace
 
 namespace clomp {
+
+TranslationUnit::TranslationUnit(const std::string& file_name): 
+	mFileName(file_name), mClang(file_name)  
+{
+	// register 'omp' pragmas
+	omp::registerPragmaHandlers( mClang.getPreprocessor() );
+
+	clang::ASTConsumer emptyCons;
+	parseClangAST(mClang, &emptyCons, true, mPragmaList);
+
+	if( mClang.getDiagnostics().hasErrorOccurred() ) {
+		// errors are always fatal!
+		throw ClangParsingError(file_name);
+	}
+
+}
 
 struct Program::ProgramImpl {
 	TranslationUnitSet tranUnits;
@@ -145,20 +96,14 @@ Program::Program(): pimpl( new ProgramImpl() ) { }
 Program::~Program() { delete pimpl; }
 
 TranslationUnit& Program::addTranslationUnit(const std::string& file_name) {
-	TranslationUnitImpl* tuImpl = new TranslationUnitImpl(file_name);
+	auto tu = std::make_shared<TranslationUnit>(file_name);
 	/* the shared_ptr will take care of cleaning the memory */;
-	pimpl->tranUnits.insert( TranslationUnitPtr(tuImpl) );
-	return *tuImpl;
+	pimpl->tranUnits.insert( tu );
+	return *tu;
 }
 
 const Program::TranslationUnitSet& Program::getTranslationUnits() const { 
 	return pimpl->tranUnits; 
-}
-
-const TranslationUnit& Program::getTranslationUnit(const idx::TranslationUnit* tu) {
-	return *dynamic_cast<const TranslationUnit*>(
-			reinterpret_cast<const TranslationUnitImpl*>(tu)
-		);
 }
 
 Program::PragmaIterator Program::pragmas_begin() const {

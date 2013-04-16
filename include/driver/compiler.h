@@ -113,11 +113,6 @@ class ClangCompiler {
 
 public:
 	/**
-	 * Creates an empty compiler instance, usefull for test cases
-	 */
-	ClangCompiler();
-
-	/**
 	 * Creates a compiler instance from an input file
 	 */
 	ClangCompiler(const std::string& file_name);

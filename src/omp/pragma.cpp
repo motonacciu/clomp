@@ -256,15 +256,15 @@ OmpPragma::OmpPragma(const clang::SourceLocation& startLoc,
 					 const MatchMap& mmap) : 
 	Pragma(startLoc, endLoc, name, mmap), mMap(mmap) 
 {
-	std::cout << "~ OmpPragma ~" << std::endl;
-	for(MatchMap::const_iterator i = mmap.begin(), e = mmap.end(); i!=e; ++i) {
-		std::vector<std::string> strs(i->second.size());
-		std::transform(i->second.begin(), i->second.end(), strs.begin(), 
-				[](const ValueUnionPtr& cur){ return cur->toStr(); }
-			);
-		std::cout << "KEYWORD: " << i->first << ":\n\t{" << utils::join(strs) << "}" << std::endl;
-	}
-	std::cout << "~~~~~~~~~~~~~" << std::endl;
+//	std::cout << "~ OmpPragma ~" << std::endl;
+//	for(MatchMap::const_iterator i = mmap.begin(), e = mmap.end(); i!=e; ++i) {
+//		std::vector<std::string> strs(i->second.size());
+//		std::transform(i->second.begin(), i->second.end(), strs.begin(), 
+//				[](const ValueUnionPtr& cur){ return cur->toStr(); }
+//			);
+//		std::cout << "KEYWORD: " << i->first << ":\n\t{" << utils::join(strs) << "}" << std::endl;
+//	}
+//	std::cout << "~~~~~~~~~~~~~" << std::endl;
 }
 
 } // End omp namespace

@@ -28,14 +28,23 @@ include_directories(
 	${LLVM_HOME}/include  )
 
 set(clang_LList
-	clangBasic clangSema clangIndex clangDriver clangAST
-    clangRewrite clangAnalysis clangLex clangFrontend clangFrontendTool 
-    clangParse clangSerialization clang
+	clangBasic 
+	clangSema 
+	clangDriver 
+	clangEdit
+	clangAST
+ 	clangAnalysis 
+	clangLex 
+	clangFrontend 
+	clangFrontendTool 
+    clangParse 
+	clangSerialization 
+	clang
 )
 
 set(LINKING_TYPE SHARED)
 
-find_library(llvm_LIB  NAMES LLVM-3.0 HINTS ${LLVM_HOME}/lib)
+find_library(llvm_LIB  NAMES LLVM-3.2 HINTS ${LLVM_HOME}/lib)
 set(clang_LList clang ${clang_LList})
 
 # Find (all?) clang libraries
