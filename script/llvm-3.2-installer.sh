@@ -1,6 +1,3 @@
-# setup environment variables
-. ./environment.setup
-
 ###########################################################################
 #  instalation notes:  
 #  ==================
@@ -11,6 +8,7 @@
 ###########################################################################
 
 VERSION=3.2
+SLOTS=2
 
 CURRENT=`pwd`
 
@@ -42,7 +40,6 @@ fi
 
 tar -xf clang-$VERSION.src.tar.gz
 mv clang-$VERSION.src clang
-rm -f clang-$VERSION.src.tar.gz
 cd $CURRENT
 
 echo "******************************************"
@@ -59,7 +56,6 @@ fi
 
 tar -xf compiler-rt-$VERSION.src.tar.gz
 mv compiler-rt-$VERSION.src compiler-rt
-rm -f compiler-rt-$VERSION.src.tar.gz
 cd $CURRENT
 
 echo "***********************************"
@@ -67,7 +63,7 @@ echo "* Applying insieme patch to CLANG *"
 echo "***********************************"
 cd llvm-$VERSION.src
 
-patch -p1  < clomp-$VERSION.patch
+patch -p1  < $CURRENT/clomp-$VERSION.patch
 
 RET=$?
 if [ $RET -ne 0 ]; then
