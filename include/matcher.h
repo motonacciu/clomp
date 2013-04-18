@@ -14,10 +14,6 @@
 #include <vector>
 #include <map>
 
-// defines which are needed by LLVM
-#define __STDC_LIMIT_MACROS
-#define __STDC_CONSTANT_MACROS
-
 #include <clang/Lex/Token.h>
 #include <clang/Basic/SourceLocation.h>
 
