@@ -43,7 +43,7 @@ class ClompSema: public clang::Sema {
 	ClompSema(const Sema& other);
 
 public:
-	ClompSema (PragmaList&   		pragma_list,
+	ClompSema (PragmaList&   				pragma_list,
 		 	  clang::Preprocessor& 			pp, 
 		 	  clang::ASTContext& 			ctx, 
 		  	  clang::ASTConsumer& 			consumer, 
