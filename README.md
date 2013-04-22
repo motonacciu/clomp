@@ -5,7 +5,7 @@ OpenMP support for LLVM/Clang compiler
 
 ## Installation
 
-Clomp is based on LLVM version 3.0 source. In order to work Clomp needs a patch to be applyed to the Clang
+Clomp is based on LLVM version 3.2 source. In order to work Clomp needs a patch to be applyed to the Clang
 source, therefore it is not compatible with later versions of LLVM. 
 
 In order to install Clomp the following libraries are needed:
