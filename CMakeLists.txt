@@ -1,4 +1,4 @@
-project(clomp CXX)
+project(clomp-driver CXX)
 
 # States that CMake required version must be >= 2.6
 cmake_minimum_required(VERSION 2.6)
@@ -6,12 +6,12 @@ cmake_minimum_required(VERSION 2.6)
 enable_testing()
 
 include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag( -std=c++0x CXX0X_Support )
-if(CXX0X_Support)
-	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+check_cxx_compiler_flag( -std=c++11 CXX11_Support )
+if(CXX11_Support)
+	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 	add_definitions( -g )
 else()
-	message( "WARNING: --std=c++0x not supported by your compiler!" )
+	message( "WARNING: --std=c++11 not supported by your compiler!" )
 endif()
 
 if(NOT DEFINED LLVM_HOME)
@@ -63,9 +63,9 @@ file(GLOB_RECURSE clomp_SOURCES  src/*.cpp )
 add_library (Clomp ${clomp_SOURCES})
 
 # Create an executable file called clomp from sources:
-add_executable(clomp src/main.cxx)
+add_executable(clomp-driver src/main.cxx)
 
-target_link_libraries(clomp Clomp ${clang_LIBs} ${pthread_LIB} ${llvm_LIB})
+target_link_libraries(clomp-driver Clomp ${clang_LIBs} ${pthread_LIB} ${llvm_LIB})
 
 add_executable(ut_pragma_matcher test/pragma_matcher_test.cc)
 target_link_libraries(ut_pragma_matcher Clomp ${clang_LIBs} 
