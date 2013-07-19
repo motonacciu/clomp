@@ -52,7 +52,7 @@ list (on standard output) the list of OpenMP pragmas being recongnized from an i
 print the location at which the pragmas are recognized and to which statements/declaration they are being applied. 
 
 ```
-./clomp my_omp_test.c
+./clomp-driver my_omp_test.c
 ```
 
 Have fun and please contributed! 
